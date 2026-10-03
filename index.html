@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RelayHub — локальный OpenAI-совместимый шлюз</title>
+  <meta name="description" content="RelayHub: единая точка входа для AI-клиентов — один endpoint, один ключ, единый каталог моделей и маршрутизация по пулам с failover.">
+  <style>
+    :root { --bg:#0d1117; --fg:#e6edf3; --muted:#8b949e; --accent:#d2a8ff; --card:#161b22; --border:#30363d; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.6; padding:24px 16px 64px; }
+    .wrap { max-width:860px; margin:0 auto; }
+    header { text-align:center; padding:32px 0 24px; }
+    h1 { font-size:2.6rem; letter-spacing:-0.02em; }
+    h1 .hub { color:var(--accent); }
+    .tagline { color:var(--muted); font-size:1.1rem; margin-top:6px; }
+    section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:26px; margin-top:20px; }
+    h2 { font-size:1.25rem; margin-bottom:14px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; }
+    .feat { background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:14px; }
+    .feat b { display:block; margin-bottom:6px; }
+    .feat span { color:var(--muted); font-size:0.92rem; }
+    .flow { font-family:ui-monospace,Consolas,monospace; font-size:0.9rem; color:var(--muted); background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:16px; overflow-x:auto; }
+    .flow em { color:var(--accent); font-style:normal; }
+    ul { padding-left:22px; }
+    li { margin:6px 0; }
+    footer { text-align:center; color:var(--muted); font-size:0.85rem; margin-top:36px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Relay<span class="hub">Hub</span></h1>
+      <p class="tagline">Локальный OpenAI-совместимый шлюз: один endpoint, один ключ, единый каталог моделей.</p>
+    </header>
+
+    <section>
+      <h2>Что это</h2>
+      <p>RelayHub — локальный шлюз, который принимает запросы AI-клиентов на OpenAI-совместимом API (Chat Completions и Responses, включая SSE-стриминг), публикует единый каталог моделей и маршрутизирует каждый запрос по полю <code>model</code> на настроенный пул upstream-провайдеров или отдельный маршрут — с автоматическим failover.</p>
+    </section>
+
+    <section>
+      <h2>Возможности</h2>
+      <div class="grid">
+        <div class="feat"><b>Один endpoint, один ключ</b><span>Клиенты подключаются к локальному адресу шлюза; ключ хранится в системном хранилище ОС, а не в конфигах.</span></div>
+        <div class="feat"><b>Единый каталог моделей</b><span>Discovery и нормализация: клиент видит один список моделей, за которым стоят разные провайдеры.</span></div>
+        <div class="feat"><b>Пулы и маршруты</b><span>Топология из пулов и маршрутов, sticky-привязки, AUTO-маршрутизация, учёт фактических попыток upstream.</span></div>
+        <div class="feat"><b>Failover</b><span>Сбой upstream — автоматический перенос запроса на следующий элемент пула, включая mid-stream ошибки.</span></div>
+        <div class="feat"><b>Responses API</b><span>Поддержка Responses-совместимых клиентов: стриминг полного жизненного цикла событий, нормализация tool-вызовов.</span></div>
+        <div class="feat"><b>Desktop-приложение</b><span>Оболочка на Tauri 2 + Svelte: топология, статус пулов, квоты и активный трафик без правки конфигов.</span></div>
+        <div class="feat"><b>Admin API</b><span>Аутентифицированный control-plane: группы, статус, телеметрия активных запросов без prompt/credential данных.</span></div>
+        <div class="feat"><b>Приватность</b><span>Шлюз живёт на loopback; телеметрия не содержит содержимого запросов, сессий и учётных данных.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Как это работает</h2>
+      <div class="flow">клиент ──▶ RelayHub (loopback) ──▶ маршрутизация по <em>model</em> ──▶ пул/маршрут ──▶ upstream
+                                                                                    │
+                                                                              failover ──▶ <em>следующий upstream</em></div>
+      <p class="muted" style="margin-top:14px">Клиенты (ассистенты, IDE-агенты, любые OpenAI-совместимые приложения) настраиваются один раз — дальше состав и порядок провайдеров меняется в шлюзе, без трогания клиентов.</p>
+    </section>
+
+    <section>
+      <h2>Стек</h2>
+      <ul>
+        <li><b>Бэкенд</b> — Python: HTTP-слой, маршрутизатор, адаптеры upstream, топология пулов/маршрутов, admin API.</li>
+        <li><b>Оболочка</b> — Tauri 2 + Svelte: desktop-приложение поверх сайдкара.</li>
+        <li><b>Тесты</b> — HTTP, пул/failover, группы/статус и adapter-регрессии; изолированные smoke-проверки сборки.</li>
+      </ul>
+    </section>
+
+    <footer>RelayHub · внутренний инструмент, страница для документации · © 2026</footer>
+  </div>
+</body>
+</html>
